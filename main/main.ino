@@ -1,4 +1,5 @@
 #include <Wire.h>
+#include <Arduino_FreeRTOS.h>
 
 #define RELAY_PIN    2  // Arduino pin that connects to relay
 #define MOISTURE_PIN A0 // Arduino pin that connects to AOUT pin of moisture sensor
@@ -7,26 +8,18 @@
 
 void setup() {
   Wire.begin();
-  Serial.begin(9600);
-  pinMode(RELAY_PIN, OUTPUT);
-   
+  Serial.begin(9600); //init i2c and serial
+  soilSensorInit();
+
+  pinMode(RELAY_PIN, OUTPUT); //init pins
+
+  xTaskCreate(soilCapSense, "Soil Moisture Sensing",
+                50, NULL, 2, NULL);
+  xTaskCreate(soilTempSense, "Soil Temp Sensing",
+                50, NULL, 2, NULL);
+  xTaskCreate(soilTempSense, "Soil Temp Sensing",
+                50, NULL, 2, NULL);              
+  vTaskStartScheduler(); 
 }
 
-void loop() {
-  
-  int value = Wire.requestFrom(address, numbytes) // read the analog value from sensor
-
-  if (value < THRESHOLD) {
-    Serial.print("The soil is DRY => turn pump ON");
-    digitalWrite(RELAY_PIN, HIGH);
-  } else {
-    Serial.print("The soil is WET => turn pump OFF");
-    digitalWrite(RELAY_PIN, LOW);
-  }
-
-  Serial.print(" (");
-  Serial.print(value);
-  Serial.println(")");
-
-  delay(500);
-}
+void loop() {}
